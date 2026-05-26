@@ -1,0 +1,16 @@
+{
+  "name": "metta",
+  "owner": {
+    "name": "Metta",
+    "url": "https://metta.com.br"
+  },
+  "description": "Plugins Claude Code · time Metta",
+  "plugins": [
+    {
+      "name": "metta-deck",
+      "source": "./metta-deck",
+      "version": "1.0.0",
+      "description": "Gera apresentações PPTX institucionais Metta fiéis ao PPT Modelo Geral"
+    }
+  ]
+}

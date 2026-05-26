@@ -1,0 +1,11 @@
+{
+  "name": "metta-deck",
+  "version": "1.0.0",
+  "description": "Gera apresentações PPTX institucionais Metta fiéis ao PPT Modelo Geral via copy-and-substitute. Skill /criar-slide-metta + runner Python + template embarcado.",
+  "author": {
+    "name": "Metta",
+    "url": "https://metta.com.br"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["metta", "pptx", "apresentação", "deck", "proposta"]
+}
