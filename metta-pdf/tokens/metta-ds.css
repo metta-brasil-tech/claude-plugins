@@ -575,7 +575,10 @@
     padding:16px 18px;
     background:var(--surface-low);
     display:flex; gap:var(--s-3);
+    overflow:hidden;
+    min-width:0;
   }
+  .blist .b > div:last-child{ min-width:0; flex:1; }
   .blist .b .check{
     flex:0 0 26px; width:26px; height:26px; border-radius:var(--r-full);
     background:var(--primary); color:var(--on-primary);
@@ -586,13 +589,19 @@
   .blist .b .title{
     font-family:var(--ff-expanded);
     font-stretch:132%; font-weight:650;
-    font-size:11pt; line-height:1.2;
+    font-size:10.5pt; line-height:1.25;
     color:var(--on-surface);
     margin-bottom:4px;
+    word-break:break-word;
+    overflow-wrap:break-word;
   }
   .blist .b .body{
     font-size:10pt; line-height:1.5; color:var(--on-surface-variant);
+    word-break:break-word;
+    overflow-wrap:break-word;
   }
+  /* Quando o item tem só title (sem body), reduz padding pra ficar mais compacto */
+  .blist .b > div:last-child > .body:empty{ display:none; }
 
   /* ===== CALLOUT (ATENÇÃO) ===== */
   .callout{
@@ -689,6 +698,85 @@
   .tag.filled{
     background:var(--primary); color:var(--on-primary);
     border-color:var(--primary); font-weight:870;
+  }
+
+  /* ===== INLINE CODE ===== */
+  code.inline{
+    font-family:'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+    font-size:.92em;
+    background:var(--surface-container);
+    color:var(--on-surface);
+    padding:1px 6px;
+    border-radius:4px;
+    border:1px solid var(--outline-variant);
+    word-break:break-all;     /* permite quebrar URLs longas */
+    overflow-wrap:anywhere;
+  }
+
+  /* ===== INLINE LINK ===== */
+  a{
+    color:var(--on-surface);
+    text-decoration:underline;
+    text-decoration-color:var(--primary);
+    text-decoration-thickness:2px;
+    text-underline-offset:2px;
+  }
+
+  /* ===== CODE BLOCK ===== */
+  .code-block{
+    background:var(--night-10);
+    color:var(--night-95);
+    border-radius:var(--r-md);
+    padding:14px 18px;
+    margin:var(--s-3) 0;
+    font-family:'SF Mono', Menlo, Consolas, 'Courier New', monospace;
+    font-size:9.5pt;
+    line-height:1.5;
+    overflow:hidden;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+    border-left:3px solid var(--primary);
+  }
+  .code-block code{
+    font-family:inherit;
+    color:inherit;
+    background:none;
+    padding:0;
+  }
+
+  /* ===== SIMPLE TABLE (genérica, 3+ cols ou troubleshooting) ===== */
+  .simple-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    border-radius:var(--r-md);
+    overflow:hidden;
+    border:1px solid var(--outline-variant);
+    margin:var(--s-3) 0 var(--s-4);
+    font-size:9.5pt;
+  }
+  .simple-table thead th{
+    background:var(--surface-container);
+    font-family:var(--ff-expanded);
+    font-stretch:132%; font-weight:870;
+    text-transform:uppercase; letter-spacing:.04em;
+    font-size:9pt;
+    color:var(--on-surface);
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--outline-variant);
+  }
+  .simple-table tbody td{
+    padding:10px 12px;
+    vertical-align:top;
+    line-height:1.5;
+    color:var(--on-surface-variant);
+    border-top:1px solid var(--outline-variant);
+  }
+  .simple-table tbody tr:first-child td{ border-top:none; }
+  .simple-table tbody td:first-child{
+    color:var(--on-surface);
+    font-weight:540;
   }
 
   /* ===== UTIL ===== */

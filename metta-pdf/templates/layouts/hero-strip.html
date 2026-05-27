@@ -32,14 +32,26 @@
     {% for block in blocks %}
       {% if block.type == 'tags' %}
         <div class="tag-row">
-          {% for t in block.items %}
-          <span class="tag{% if t.filled %} filled{% endif %}">{{ t.label | default(t) }}</span>
+          {% for t in block.entries %}
+          <span class="tag{% if t.filled %} filled{% endif %}">{{ t.label | default(t) | safe }}</span>
+          {% endfor %}
+        </div>
+      {% elif block.type == 'benefit_list' %}
+        <div class="blist">
+          {% for b in block.entries %}
+          <div class="b">
+            <div class="check">{{ b.icon | default('•') }}</div>
+            <div>
+              <div class="title">{{ b.title | safe }}</div>
+              {% if b.body %}<div class="body">{{ b.body | safe }}</div>{% endif %}
+            </div>
+          </div>
           {% endfor %}
         </div>
       {% elif block.type == 'yellow_band' %}
         <div class="yellow-band"></div>
       {% elif block.type == 'subheading' %}
-        <h2 class="sub">{{ block.text }}</h2>
+        <h2 class="sub">{{ block.text | safe }}</h2>
       {% elif block.type == 'small' %}
         <p class="small">{{ block.text | safe }}</p>
       {% endif %}

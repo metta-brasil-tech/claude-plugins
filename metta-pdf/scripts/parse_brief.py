@@ -90,51 +90,138 @@ def parse_docx(path: str | Path) -> list[dict[str, Any]]:
 
 
 def parse_markdown(path: str | Path) -> list[dict[str, Any]]:
-    """Parse a Markdown file into structured sections."""
+    """Parse a Markdown file into structured sections.
+
+    Lida com:
+      - Headings (# / ## / ### / ####)
+      - Listas (- / * / 1.)
+      - Tabelas (|...|...|)
+      - Code blocks (```...```)
+      - Blockquotes (>)
+      - Horizontal rules (---) → ignorados
+      - Subheadings dentro de seções (### vira subheading inline, não nova seção
+        se o pai for ##; default: cria nova seção)
+    """
+    import re
     text = Path(path).read_text(encoding="utf-8")
     sections: list[dict[str, Any]] = []
     current: dict[str, Any] | None = None
 
+    def ensure_current() -> dict[str, Any]:
+        nonlocal current
+        if current is None:
+            current = {"title": "Abertura", "level": 1, "body": [], "tables": []}
+        return current
+
     lines = text.splitlines()
     i = 0
     while i < len(lines):
-        line = lines[i].rstrip()
+        line = lines[i]
+
+        # Code fence
+        if line.lstrip().startswith("```"):
+            code_lines: list[str] = []
+            i += 1
+            while i < len(lines) and not lines[i].lstrip().startswith("```"):
+                code_lines.append(lines[i])
+                i += 1
+            # i is now on closing ``` or EOF
+            i += 1
+            sec = ensure_current()
+            sec["body"].append({
+                "type": "code",
+                "text": "\n".join(code_lines).rstrip(),
+            })
+            continue
+
+        # Horizontal rule
+        if re.match(r"^\s*-{3,}\s*$", line) or re.match(r"^\s*={3,}\s*$", line):
+            i += 1
+            continue
+
+        stripped = line.strip()
 
         # Heading detection
-        if line.startswith("# "):
+        if stripped.startswith("# "):
             if current is not None:
                 sections.append(current)
-            current = {"title": line[2:].strip(), "level": 1, "body": [], "tables": []}
-        elif line.startswith("## "):
+            current = {"title": stripped[2:].strip(), "level": 1, "body": [], "tables": []}
+            i += 1
+            continue
+        if stripped.startswith("## "):
             if current is not None:
                 sections.append(current)
-            current = {"title": line[3:].strip(), "level": 2, "body": [], "tables": []}
-        elif line.startswith("### "):
-            if current is not None:
-                sections.append(current)
-            current = {"title": line[4:].strip(), "level": 3, "body": [], "tables": []}
-        elif line.startswith("- ") or line.startswith("* "):
-            if current is None:
-                current = {"title": "Abertura", "level": 1, "body": [], "tables": []}
-            current["body"].append({"type": "list_item", "text": line[2:].strip()})
-        elif line.startswith("|") and "|" in line[1:]:
-            # Table — collect contiguous lines
+            current = {"title": stripped[3:].strip(), "level": 2, "body": [], "tables": []}
+            i += 1
+            continue
+        if stripped.startswith("### "):
+            # Sub-heading dentro de seção — adiciona como subheading no body
+            ensure_current()["body"].append({
+                "type": "subheading",
+                "text": stripped[4:].strip(),
+            })
+            i += 1
+            continue
+        if stripped.startswith("#### "):
+            ensure_current()["body"].append({
+                "type": "subheading",
+                "text": stripped[5:].strip(),
+            })
+            i += 1
+            continue
+
+        # Blockquote
+        if stripped.startswith(">"):
+            quote_text = stripped[1:].strip()
+            # Coleta linhas seguintes do mesmo blockquote
+            while i + 1 < len(lines) and lines[i + 1].strip().startswith(">"):
+                i += 1
+                quote_text += " " + lines[i].strip()[1:].strip()
+            ensure_current()["body"].append({
+                "type": "callout",
+                "text": quote_text,
+            })
+            i += 1
+            continue
+
+        # Unordered list
+        if stripped.startswith("- ") or stripped.startswith("* "):
+            ensure_current()["body"].append({
+                "type": "list_item",
+                "text": stripped[2:].strip(),
+            })
+            i += 1
+            continue
+
+        # Ordered list (1. 2. ...)
+        if re.match(r"^\d+\.\s", stripped):
+            text_content = re.sub(r"^\d+\.\s", "", stripped)
+            ensure_current()["body"].append({
+                "type": "list_item",
+                "text": text_content,
+            })
+            i += 1
+            continue
+
+        # Tables
+        if stripped.startswith("|") and "|" in stripped[1:]:
             tbl_rows: list[list[str]] = []
-            while i < len(lines) and lines[i].startswith("|"):
+            while i < len(lines) and lines[i].strip().startswith("|"):
                 row_line = lines[i].strip()
                 cells = [c.strip() for c in row_line.strip("|").split("|")]
                 # Skip alignment row (---)
                 if not all(set(c) <= set("-: ") for c in cells):
                     tbl_rows.append(cells)
                 i += 1
-            if current is None:
-                current = {"title": "Abertura", "level": 1, "body": [], "tables": []}
-            current["tables"].append(tbl_rows)
+            ensure_current()["tables"].append(tbl_rows)
             continue
-        elif line.strip():
-            if current is None:
-                current = {"title": "Abertura", "level": 1, "body": [], "tables": []}
-            current["body"].append({"type": "paragraph", "text": line.strip()})
+
+        # Plain paragraph
+        if stripped:
+            ensure_current()["body"].append({
+                "type": "paragraph",
+                "text": stripped,
+            })
         i += 1
 
     if current is not None:

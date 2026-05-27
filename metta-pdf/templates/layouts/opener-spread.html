@@ -31,12 +31,12 @@
         <div class="grid-2">
           <div class="card">
             <div class="eyebrow" style="color:#B38400">{{ block.left.eyebrow | default('') }}</div>
-            <div class="title">{{ block.left.title }}</div>
+            <div class="title">{{ block.left.title | safe }}</div>
             <p class="body">{{ block.left.body | safe }}</p>
           </div>
           <div class="card elevated">
             <div class="eyebrow" style="color:var(--on-surface)">{{ block.right.eyebrow | default('') }}</div>
-            <div class="title">{{ block.right.title }}</div>
+            <div class="title">{{ block.right.title | safe }}</div>
             <p class="body">{{ block.right.body | safe }}</p>
           </div>
         </div>
@@ -45,11 +45,11 @@
         {% if block.subtitle %}<p class="small">{{ block.subtitle }}</p>{% endif %}
       {% elif block.type == 'benefit_list' %}
         <div class="blist">
-          {% for b in block.items %}
+          {% for b in block.entries %}
           <div class="b">
             <div class="check">{{ b.icon | default('+') }}</div>
             <div>
-              <div class="title">{{ b.title }}</div>
+              <div class="title">{{ b.title | safe }}</div>
               <div class="body">{{ b.body | safe }}</div>
             </div>
           </div>

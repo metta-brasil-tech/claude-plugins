@@ -40,6 +40,48 @@ def _load_jinja_env():
 # Per-layout data mapping
 # ---------------------------------------------------------------------------
 
+def _render_inline_md(text: str) -> str:
+    """Converte sintaxe markdown inline pra HTML.
+
+    Suporta: **bold**, *italic*, `code`, [text](url).
+    A ordem importa — code primeiro (preserva conteúdo literal), depois links,
+    depois bold/italic.
+    """
+    if not text:
+        return text
+    # 1. Inline code primeiro (preserva conteúdo, NÃO processa MD dentro)
+    placeholders: list[str] = []
+    def _code_repl(m: re.Match) -> str:
+        idx = len(placeholders)
+        placeholders.append(f'<code class="inline">{m.group(1)}</code>')
+        return f"\x00CODE{idx}\x00"
+    text = re.sub(r"`([^`]+)`", _code_repl, text)
+
+    # 2. Links: [text](url)
+    text = re.sub(
+        r"\[([^\]]+)\]\(([^)]+)\)",
+        r'<a href="\2">\1</a>',
+        text,
+    )
+
+    # 3. Bold: **text** (não-greedy)
+    text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
+
+    # 4. Italic: *text* (não-greedy, evita conflito com bold já tratado)
+    text = re.sub(r"(?<!\*)\*([^*\n]+)\*(?!\*)", r"<em>\1</em>", text)
+
+    # Restore code placeholders
+    for i, code_html in enumerate(placeholders):
+        text = text.replace(f"\x00CODE{i}\x00", code_html)
+
+    return text
+
+
+def _md(text: str) -> str:
+    """Alias curto pra inline MD render — usado nos builders."""
+    return _render_inline_md(text)
+
+
 def _para_text(body: list[dict]) -> list[str]:
     return [p["text"] for p in body if p.get("type") == "paragraph"]
 
@@ -61,26 +103,73 @@ def _strip_html_safe(s: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Cover headline split — destaca apenas os "key terms" finais, pula prepositions
+# ---------------------------------------------------------------------------
+
+_PREP_ARTICLES = {
+    # preposições + artigos PT-BR + EN simples
+    "no", "na", "nos", "nas", "do", "da", "dos", "das",
+    "de", "em", "com", "para", "por", "pra", "pro",
+    "o", "a", "os", "as", "um", "uma",
+    "of", "the", "in", "on", "for", "to", "and",
+}
+
+
+def _split_cover_headline(title: str) -> str:
+    """Quebra o título em (não-accent) + (accent yellow).
+
+    Heurística: pega os 1-2 últimos words como accent, parando ao encontrar
+    preposição ou artigo. Limita accent a 2 words pra punch visual.
+    """
+    title = title.strip()
+    if not title:
+        return ""
+    words = title.split()
+    if len(words) == 1:
+        return f'<span class="accent">{words[0]}</span>'
+    if len(words) == 2:
+        return f'{words[0]}<br><span class="accent">{words[1]}</span>'
+
+    # Identifica accent_words: trailing words que NÃO são prep/article
+    accent_words: list[str] = []
+    for w in reversed(words):
+        if w.lower().strip(".,!?") in _PREP_ARTICLES:
+            break
+        accent_words.insert(0, w)
+
+    if not accent_words:
+        # Todos os finais são prep? Fallback: última palavra
+        accent_words = [words[-1]]
+
+    # Limita accent a 2 palavras pro punch visual
+    if len(accent_words) > 2:
+        accent_words = accent_words[-2:]
+
+    non_accent_words = words[: len(words) - len(accent_words)]
+    accent = " ".join(accent_words)
+
+    # Quebra non-accent em 1 ou 2 linhas dependendo do tamanho
+    if len(non_accent_words) == 0:
+        return f'<span class="accent">{accent}</span>'
+
+    non_accent_str = " ".join(non_accent_words)
+    # Se non-accent é longo (>= 4 words), quebra em 2 linhas pra equilíbrio visual
+    if len(non_accent_words) >= 4:
+        mid = (len(non_accent_words) + 1) // 2
+        line1 = " ".join(non_accent_words[:mid])
+        line2 = " ".join(non_accent_words[mid:])
+        return f'{line1}<br>{line2}<br><span class="accent">{accent}</span>'
+
+    return f'{non_accent_str}<br><span class="accent">{accent}</span>'
+
+
+# ---------------------------------------------------------------------------
 # Cover mapping
 # ---------------------------------------------------------------------------
 
 def _build_cover(sec: dict, ctx: dict) -> dict:
     title = sec["title"]
-    # Quebra heuristica em 2 linhas (palavras curtas no topo, palavra-chave embaixo accent)
-    words = title.split()
-    if len(words) <= 2:
-        h_lines = title
-    elif len(words) == 3:
-        h_lines = f'{words[0]}<br>{words[1]} <span class="accent">{words[2]}</span>'
-    else:
-        # divide em ~metade
-        mid = len(words) // 2
-        first = " ".join(words[:mid])
-        last_words = words[mid:]
-        if len(last_words) >= 2:
-            h_lines = f'{first} {last_words[0]}<br><span class="accent">{" ".join(last_words[1:])}</span>'
-        else:
-            h_lines = f'{first}<br><span class="accent">{last_words[0]}</span>'
+    h_lines = _split_cover_headline(title)
 
     paragraphs = _para_text(sec.get("body", []))
     deck = paragraphs[0] if paragraphs else None
@@ -90,8 +179,8 @@ def _build_cover(sec: dict, ctx: dict) -> dict:
         "eyebrow": ctx.get("module_label", ""),
         "kicker": ctx.get("kicker", ""),
         "headline_lines": h_lines,
-        "deck": deck,
-        "footer_left": ctx.get("footer_left", ""),
+        "deck": _md(deck) if deck else None,
+        "footer_left": _md(ctx.get("footer_left", "")),
         "footer_right": ctx.get("footer_right", ""),
         "cover_image": ctx.get("cover_image"),  # path passado em ctx
     }
@@ -110,41 +199,61 @@ def _build_opener(sec: dict, ctx: dict) -> dict:
     extra_paragraphs = paragraphs[1:3]  # próximos 1-2 parágrafos
 
     blocks = []
-    # Se há list items em pares (paragraph→item→paragraph→item), monta compare cards
-    # Simpler: se a seção tem N >= 2 list items + parágrafos seguintes, monta benefit_list
-    if len(list_items) >= 2:
-        # Pareia list_item com o próximo parágrafo (no body original)
-        items_with_desc = []
-        last_was_li = False
-        for entry in body:
-            if entry["type"] == "list_item":
-                items_with_desc.append({"title": entry["text"], "body": ""})
-                last_was_li = True
-            elif entry["type"] == "paragraph" and last_was_li and items_with_desc:
-                items_with_desc[-1]["body"] = entry["text"]
-                last_was_li = False
-            else:
-                last_was_li = False
+    # Pareia list_item com o próximo parágrafo (descrição abaixo do item)
+    items_with_desc: list[dict] = []
+    last_was_li = False
+    for entry in body:
+        if entry["type"] == "list_item":
+            items_with_desc.append({"title": entry["text"], "body": ""})
+            last_was_li = True
+        elif entry["type"] == "paragraph" and last_was_li and items_with_desc:
+            items_with_desc[-1]["body"] = entry["text"]
+            last_was_li = False
+        else:
+            last_was_li = False
 
-        # Os 2 primeiros viram compare cards, o resto vira benefit_list
-        if len(items_with_desc) >= 2:
-            blocks.append({
-                "type": "compare",
-                "left": {"eyebrow": "Sem perguntas", "title": items_with_desc[0]["title"], "body": items_with_desc[0]["body"]},
-                "right": {"eyebrow": "Vendedor 4.0", "title": items_with_desc[1]["title"], "body": items_with_desc[1]["body"]},
-            })
+    # Heurística:
+    # - exatamente 2 items curtos com descrição = compare cards (estilo "antes/depois")
+    # - 3+ items = benefit_list
+    # - 1 item = paragraph
+    is_compare_candidate = (
+        len(items_with_desc) == 2 and
+        all(len(it["title"]) <= 40 and it["body"] for it in items_with_desc)
+    )
+    if is_compare_candidate:
+        blocks.append({
+            "type": "compare",
+            "left": {"eyebrow": "", "title": items_with_desc[0]["title"], "body": items_with_desc[0]["body"]},
+            "right": {"eyebrow": "", "title": items_with_desc[1]["title"], "body": items_with_desc[1]["body"]},
+        })
+    elif len(items_with_desc) >= 2:
+        blocks.append({
+            "type": "benefit_list",
+            "entries": [{"title": it["title"], "body": it.get("body", ""), "icon": "•"} for it in items_with_desc],
+        })
+
+    # Aplica inline MD em todos blocks
+    for blk in blocks:
+        if blk.get("type") == "compare":
+            for side in ("left", "right"):
+                blk[side]["title"] = _md(blk[side].get("title", ""))
+                blk[side]["body"] = _md(blk[side].get("body", ""))
+        elif blk.get("type") == "benefit_list":
+            for it in blk.get("entries", []):
+                it["title"] = _md(it.get("title", ""))
+                it["body"] = _md(it.get("body", ""))
 
     return {
         "doc_title": ctx.get("doc_title", ""),
         "meta": ctx.get("meta_text", ""),
         "eyebrow": "Abertura",
         "title": sec["title"],
-        "lede": lede,
-        "paragraphs": extra_paragraphs,
+        "lede": _md(lede),
+        "paragraphs": [_md(p) for p in extra_paragraphs],
         "image": ctx.get("section_image"),
         "image_placeholder": ctx.get("section_image_placeholder", "atendente em ação na loja do posto"),
         "blocks": blocks,
-        "closing": paragraphs[-1] if len(paragraphs) > 3 else "",
+        "closing": _md(paragraphs[-1]) if len(paragraphs) > 3 else "",
         "footer_left": ctx.get("footer_left", ""),
         "page_num": ctx.get("page_num", 0),
     }
@@ -155,49 +264,104 @@ def _build_opener(sec: dict, ctx: dict) -> dict:
 # ---------------------------------------------------------------------------
 
 def _build_content_only(sec: dict, ctx: dict) -> dict:
+    """Constrói blocks pra content-only emitindo CADA body item + tables.
+
+    Casos especiais:
+      - Tabela com 2 cols + compare table (header antonímico ou body longo)
+        → compare block
+      - Tabela com 2 cols + N rows (key|val) ou tabela com 3+ cols
+        → qtable block (rendered como simple table)
+      - Sequência de list_item → benefit_list (mas com paragraphs intercalados
+        pareados como "title + body")
+      - Bloco code → code block (mono)
+      - Callout (blockquote) → callout box
+      - Subheading inline (### no MD) → subheading
+    """
     body = sec.get("body", [])
-    paragraphs = _para_text(body)
-    list_items = _list_items(body)
     tables = sec.get("tables", [])
 
-    lede = paragraphs[0] if paragraphs else ""
-    blocks = []
+    blocks: list[dict] = []
+    lede = ""
 
-    # Se tem tabela 2-col tipo compare (header + body row)
-    if tables and len(tables[0]) >= 2 and len(tables[0][0]) == 2:
-        t = tables[0]
-        # Heurística compare: header + descrição + (opcional) exemplo
-        if len(t) >= 2:
-            left_head = t[0][0]
-            right_head = t[0][1]
-            left_body = t[1][0] if len(t) > 1 else ""
-            right_body = t[1][1] if len(t) > 1 else ""
-            left_ex = t[2][0] if len(t) > 2 else ""
-            right_ex = t[2][1] if len(t) > 2 else ""
+    # Extrai lede = primeiro parágrafo se houver
+    body_iter = list(body)
+    for i, entry in enumerate(body_iter):
+        if entry.get("type") == "paragraph":
+            lede = _md(entry["text"])
+            body_iter = body_iter[i + 1:]
+            break
+
+    # Helper: detecta sequência de list_items pra agrupar como benefit_list
+    def flush_pending_list(pending: list[dict]) -> None:
+        if not pending:
+            return
+        # Se >=2 items, vira benefit_list; se 1, vira paragraph
+        if len(pending) >= 2:
+            blocks.append({
+                "type": "benefit_list",
+                "entries": [{"title": _md(it["title"]), "body": _md(it.get("body", "")), "icon": "•"} for it in pending],
+            })
+        else:
+            blocks.append({"type": "paragraph", "body": _md(pending[0]["title"])})
+
+    pending_list: list[dict] = []
+
+    j = 0
+    while j < len(body_iter):
+        entry = body_iter[j]
+        etype = entry.get("type")
+
+        if etype == "list_item":
+            # Adiciona ao pending; o próximo paragraph pareia como body se vier
+            pending_list.append({"title": entry["text"], "body": ""})
+            # Olha o próximo: se for paragraph, é o body do item
+            if j + 1 < len(body_iter) and body_iter[j + 1].get("type") == "paragraph":
+                pending_list[-1]["body"] = body_iter[j + 1]["text"]
+                j += 2
+                continue
+            j += 1
+            continue
+
+        # Não é list_item → flush pending primeiro
+        flush_pending_list(pending_list)
+        pending_list = []
+
+        if etype == "paragraph":
+            blocks.append({"type": "paragraph", "body": _md(entry["text"])})
+        elif etype == "subheading":
+            blocks.append({"type": "subheading", "text": _md(entry["text"])})
+        elif etype == "code":
+            # Code blocks ficam RAW (sem inline MD)
+            blocks.append({"type": "code", "text": entry["text"]})
+        elif etype == "callout":
+            blocks.append({"type": "callout", "label": "Importante", "body": _md(entry["text"])})
+
+        j += 1
+
+    # Flush final do pending list
+    flush_pending_list(pending_list)
+
+    # Tabelas (após todo o conteúdo do body)
+    for t in tables:
+        if not t or not t[0]:
+            continue
+        cols = len(t[0])
+        rows = len(t)
+
+        # Compare 2-col, 2-3 rows com header antonímico
+        if cols == 2 and rows <= 3:
             blocks.append({
                 "type": "compare",
-                "left": {"head": left_head, "body": left_body, "example": left_ex},
-                "right": {"head": right_head, "body": right_body, "example": right_ex},
+                "left": {"head": _md(t[0][0]), "body": _md(t[1][0]) if rows > 1 else "", "example": _md(t[2][0]) if rows > 2 else ""},
+                "right": {"head": _md(t[0][1]), "body": _md(t[1][1]) if rows > 1 else "", "example": _md(t[2][1]) if rows > 2 else ""},
             })
-
-    # Se tem >= 4 list items, monta um card grid
-    if len(list_items) >= 4:
-        cards = []
-        # Pareia list_item + próximo parágrafo
-        idx = 0
-        item_para_pairs = []
-        for entry in body:
-            if entry["type"] == "list_item":
-                item_para_pairs.append({"title": entry["text"], "body": ""})
-            elif entry["type"] == "paragraph" and item_para_pairs and item_para_pairs[-1]["body"] == "":
-                item_para_pairs[-1]["body"] = entry["text"]
-
-        for i, pair in enumerate(item_para_pairs, 1):
-            cards.append({"num": i, "title": pair["title"], "body": pair["body"]})
-
-        if cards:
-            blocks.append({"type": "subheading", "text": "Pontos-chave"})
-            blocks.append({"type": "card_grid", "cards": cards})
+        else:
+            # Tabela genérica — emite como simple_table (suportada via template)
+            blocks.append({
+                "type": "simple_table",
+                "header": [_md(c) for c in t[0]],
+                "rows": [[_md(c) for c in row] for row in t[1:]],
+            })
 
     return {
         "doc_title": ctx.get("doc_title", ""),
@@ -222,22 +386,30 @@ def _build_hero_strip(sec: dict, ctx: dict) -> dict:
     list_items = _list_items(body)
 
     blocks = []
-    if list_items:
+    # Tags só pra list items curtos (<= 30 chars) — labels visuais
+    short_items = [t for t in list_items if len(t) <= 30]
+    long_items = [t for t in list_items if len(t) > 30]
+
+    if short_items and not long_items:
+        # Todos curtos → tags filled
         blocks.append({
             "type": "tags",
-            "items": [{"label": t, "filled": True} for t in list_items],
+            "entries": [{"label": _md(t), "filled": True} for t in short_items],
         })
-    elif len(paragraphs) >= 3:
-        # extrai palavras-chave em destaque dos parágrafos como tags
-        pass
+    elif list_items:
+        # Tem items longos (ou mix) → benefit_list ao invés de tags
+        blocks.append({
+            "type": "benefit_list",
+            "entries": [{"title": _md(t), "body": "", "icon": "•"} for t in list_items],
+        })
 
     return {
         "doc_title": ctx.get("doc_title", ""),
         "meta": ctx.get("meta_text", ""),
         "eyebrow": ctx.get("section_eyebrow", "Transição"),
         "title": sec["title"],
-        "lede": paragraphs[0] if paragraphs else "",
-        "paragraphs": paragraphs[1:],
+        "lede": _md(paragraphs[0]) if paragraphs else "",
+        "paragraphs": [_md(p) for p in paragraphs[1:]],
         "image": ctx.get("section_image"),
         "image_placeholder": ctx.get("section_image_placeholder", "leia a cena do posto"),
         "strip_size": "h-sm",

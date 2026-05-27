@@ -1,6 +1,6 @@
 {
   "name": "metta-pdf",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown. CLI unificado build_pdf.py + setup_check + skill /criar-pdf-metta. Pipeline: parse → layout → suggest images → generate via nano-banana → HTML → Chrome headless → PDF. Imagens AI via Gemini Flash com retry de timeout + backoff em 503.",
   "author": {
     "name": "Metta",

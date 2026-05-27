@@ -15,7 +15,7 @@
       {% elif block.type == 'compare' %}
         <div class="compare keep">
           <div class="col bad">
-            <div class="head">{{ block.left.head }}</div>
+            <div class="head">{{ block.left.head | safe }}</div>
             <div class="body">{{ block.left.body | safe }}</div>
             {% if block.left.example %}
             <div class="example">
@@ -25,7 +25,7 @@
             {% endif %}
           </div>
           <div class="col good">
-            <div class="head">{{ block.right.head }}</div>
+            <div class="head">{{ block.right.head | safe }}</div>
             <div class="body">{{ block.right.body | safe }}</div>
             {% if block.right.example %}
             <div class="example">
@@ -42,18 +42,18 @@
           <div class="card keep">
             {% if c.num is defined %}<div class="num">{{ c.num }}</div>{% endif %}
             {% if c.eyebrow %}<div class="eyebrow" style="margin-bottom:6px">{{ c.eyebrow }}</div>{% endif %}
-            <div class="title">{{ c.title }}</div>
+            <div class="title">{{ c.title | safe }}</div>
             <div class="body">{{ c.body | safe }}</div>
           </div>
           {% endfor %}
         </div>
       {% elif block.type == 'benefit_list' %}
         <div class="blist">
-          {% for b in block.items %}
+          {% for b in block.entries %}
           <div class="b">
             <div class="check">{{ b.icon | default('+') }}</div>
             <div>
-              <div class="title">{{ b.title }}</div>
+              <div class="title">{{ b.title | safe }}</div>
               <div class="body">{{ b.body | safe }}</div>
             </div>
           </div>
@@ -66,12 +66,12 @@
         </div>
       {% elif block.type == 'tags' %}
         <div class="tag-row">
-          {% for t in block.items %}
+          {% for t in block.entries %}
           <span class="tag{% if t.filled %} filled{% endif %}">{{ t.label | default(t) }}</span>
           {% endfor %}
         </div>
       {% elif block.type == 'subheading' %}
-        <h2 class="sub">{{ block.text }}</h2>
+        <h2 class="sub">{{ block.text | safe }}</h2>
       {% elif block.type == 'divider' %}
         <div class="divider"></div>
       {% elif block.type == 'yellow_band' %}
@@ -81,6 +81,21 @@
           <div class="check">✓</div>
           <div class="text">{{ block.text | safe }}</div>
         </div>
+      {% elif block.type == 'code' %}
+        <pre class="code-block keep"><code>{{ block.text }}</code></pre>
+      {% elif block.type == 'simple_table' %}
+        <table class="simple-table keep">
+          {% if block.header %}
+          <thead>
+            <tr>{% for h in block.header %}<th>{{ h | safe }}</th>{% endfor %}</tr>
+          </thead>
+          {% endif %}
+          <tbody>
+            {% for row in block.rows %}
+            <tr>{% for c in row %}<td>{{ c | safe }}</td>{% endfor %}</tr>
+            {% endfor %}
+          </tbody>
+        </table>
       {% endif %}
     {% endfor %}
   {% endif %}
