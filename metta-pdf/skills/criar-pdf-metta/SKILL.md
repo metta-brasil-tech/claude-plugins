@@ -10,7 +10,7 @@ description: Gera PDF institucional editorial Metta a partir de DOCX/Markdown. U
 User pediu pra criar/gerar/montar PDF institucional Metta a partir de:
 - Um arquivo DOCX existente
 - Um arquivo Markdown
-- Uma descrição em prosa (caso simples — converte em MD primeiro)
+- Uma descrição em prosa (caso simples — converta em MD primeiro)
 
 Tipicamente:
 - Módulos de treinamento (5-15 páginas)
@@ -23,23 +23,25 @@ Não usar para:
 - Ads / posts IG → `/copy-ad` + `/design-metta`
 - Landing pages → outros skills
 
-## Fluxo (5 fases)
+## Fluxo
 
 ```
 1. INPUT          → user passa DOCX/MD
 2. PARSE+LAYOUT   → mostra mapeamento seção→layout, espera aprovação
-3. SUGGEST IMG    → propõe pontos editoriais com prompts, espera aprovação
-4. GENERATE IMG   → nano-banana CLI em paralelo + retry de timeout
-5. RENDER         → HTML via Jinja2 + PDF via Chrome headless
-OUTPUT → output/<slug>/<slug>.pdf + .html + img/*.jpeg
+3. SUGGEST IMG    → propõe pontos editoriais, espera aprovação
+4. GENERATE+PDF   → roda build_pdf.py com tudo aprovado
+OUTPUT → output/<slug>/<slug>.pdf + .html + img/*.jpeg + report.json
 ```
 
-## Variáveis de ambiente
+## Pré-requisitos
 
-Antes de tudo, garantir:
-- `GEMINI_API_KEY` exportada (pro nano-banana CLI). Sem isso, fase 4 falha.
-- Chrome ou Edge instalado.
-- Python 3.11+ com `python-docx` + `Jinja2`.
+Antes da primeira execução, rodar:
+```bash
+python ~/.claude/plugins/marketplaces/metta/metta-pdf/scripts/setup_check.py
+```
+
+Garante: Python 3.11+, python-docx, Jinja2, Chrome, nano-banana CLI (pra
+imagens), `GEMINI_API_KEY`. Se algo faltar, o script aponta como resolver.
 
 ## Passo 1 — Receber o brief
 
@@ -49,116 +51,85 @@ User: /criar-pdf-metta C:/path/to/02_treinamento.docx
 
 Aceita também:
 - Markdown: `brief.md`
-- Prosa: user descreve, você converte em MD temporário
+- Prosa: converta em MD temporário antes
 
-Pergunte ao user o **setor / contexto** se não estiver óbvio do brief:
-> "Qual o setor / cenário das imagens? Ex: 'loja de posto de combustível', 'consultório odontológico', 'agência de marketing'..."
+Pergunte ao user o **setor / cenário** se não estiver óbvio:
+> "Qual o setor / cenário das imagens? Ex: 'loja de posto de combustível',
+> 'consultório odontológico', 'agência de marketing'..."
 
-Isso vai pra `--setor=...` nos scripts.
+## Passo 2 — Mostrar mapeamento + aprovação
 
-## Passo 2 — Parse + select layout
-
-```bash
-PLUGIN_DIR=~/.claude/plugins/marketplaces/metta/metta-pdf
-python "$PLUGIN_DIR/scripts/select_layout.py" "<brief.docx>"
-```
-
-Saída:
-```
-1. TÍTULO DA CAPA              →  cover
-2. Abertura/Intro              →  opener-spread
-3. Fundamento 1                →  content-only
-...
-```
-
-**Mostre essa tabela pro user e pergunte:**
-> "Aprovar este mapeamento ou ajustar algo?"
-
-Permita overrides simples:
-- "muda seção 3 pra hero-strip"
-- "junta seções 4 e 5"
-- "remove seção 6"
-
-## Passo 3 — Sugerir imagens
+Rode com `--dry-run` pra inspecionar antes de gastar tempo/dinheiro:
 
 ```bash
-python "$PLUGIN_DIR/scripts/suggest_images.py" "<brief.docx>" --setor="<setor>"
+PLUGIN=~/.claude/plugins/marketplaces/metta/metta-pdf
+python "$PLUGIN/scripts/build_pdf.py" "<brief>" \
+  --setor="<setor>" --output ./output/<slug> --dry-run
 ```
 
 Saída exemplo:
 ```
-8 pontos editoriais sugeridos:
-  • VISUALIZE O CENÁRIO              →  cover           (16:9 1K)  →  cover.jpeg
-  • Como Perguntar?                  →  opener-spread   (1:1 1K)   →  01-opener-...
-  • Perfil 1: Caminhoneiro Autônomo  →  profile-spread  (4:5 1K)   →  04-profile-...
+━━━ 1. Parse + layout selection ━━━
+1. TÍTULO DA CAPA              →  cover
+2. Abertura/Intro              →  opener-spread
+3. Fundamento 1                →  content-only
+...
+
+━━━ 2. Imagens sugeridas (dry-run) ━━━
+  • TÍTULO DA CAPA              →  cover           (16:9 1K)
+  • Perfil 1: ...               →  profile-spread  (4:5 1K)
   ...
 ```
 
-**Mostre pro user e pergunte:**
-> "Aprovar todos os {N} pontos? Custo estimado ~${N×$0.07}. Você pode também:
-> - aprovar parcialmente (\"gerar só cover e perfis\")
-> - editar um prompt (\"o caminhoneiro autônomo deve ter ~40 anos, não 50\")
-> - pular tudo (\"sem imagens, só placeholders\")"
+**Mostre essa saída pro user e pergunte:**
+> "Aprovar este mapeamento e a lista de {N} imagens (~${N×$0.07})? Você pode:
+> - aprovar tudo
+> - pedir overrides ('muda seção 3 pra hero-strip', 'remove imagem do perfil 2')
+> - pular imagens ('--skip-images')"
 
-## Passo 4 — Gerar imagens
+## Passo 3 — Rodar pipeline completo
 
-```bash
-python "$PLUGIN_DIR/scripts/generate_images.py" "<brief.docx>" "<output_dir>/img" --setor="<setor>"
-```
-
-O script:
-- Roda em paralelo (4 workers default)
-- Retry com prompt encurtado se der timeout
-- Falhas viram placeholder no PDF final
-
-Avise o user: cada imagem leva ~30-90s. Para ~6 imagens em paralelo, total ~2-3min.
-
-## Passo 5 — Renderizar HTML + PDF
+Com aprovação, rode sem `--dry-run`:
 
 ```bash
-python "$PLUGIN_DIR/scripts/render_html.py" "<brief.docx>" "<output_dir>/<slug>.html"
-python "$PLUGIN_DIR/scripts/render_pdf.py" "<output_dir>/<slug>.html" "<output_dir>/<slug>.pdf"
+python "$PLUGIN/scripts/build_pdf.py" "<brief>" \
+  --setor="<setor>" \
+  --output ./output/<slug> \
+  --title "<título>" \
+  --meta "<header texto>" \
+  --module-label "<eyebrow capa>"
 ```
 
-Pra ligar imagens no HTML, o pipeline completo precisa do `image_map` retornado
-pelo `generate_images.py`. Use o módulo Python diretamente:
+Variantes úteis:
+- `--skip-images` — pula geração AI, usa placeholders (rápido, sem custo)
+- `--workers 1` — sequencial (mais lento, mais resiliente contra 503)
+- `--workers 2` — default (paralelo equilibrado)
 
-```python
-import sys, json
-sys.path.insert(0, "<PLUGIN_DIR>/scripts")
-from parse_brief import parse
-from select_layout import classify_sections
-from suggest_images import suggest
-from generate_images import generate_all, image_map_from_results
-from render_html import render
-from render_pdf import render as render_pdf
+O script entrega:
+- `<slug>.pdf` — final
+- `<slug>.html` — fonte editável
+- `img/*.jpeg` — imagens geradas
+- `report.json` — log estruturado com status de cada imagem
 
-secs = parse("brief.docx")
-enriched = classify_sections(secs)
-points = suggest(enriched, brief_context={"setor": "..."})
-# user confirma points...
-results = generate_all(points, output_dir="output/img")
-image_map = image_map_from_results(results)
-html = render(enriched, doc_title="...", meta_text="...", image_map=image_map)
-Path("output/doc.html").write_text(html, encoding="utf-8")
-render_pdf("output/doc.html", "output/doc.pdf")
-```
+## Passo 4 — Reportar pro user
 
-## Passo 6 — Entregar
+Após sucesso:
+> "Pronto. PDF em `output/<slug>/<slug>.pdf` ({tamanho} MB · {páginas} páginas).
+> {N_OK}/{N_TOTAL} imagens geradas. {Falhas, se houver}."
 
-Reporte:
-- Caminho do PDF + HTML
-- Lista de imagens geradas (e quais foram placeholder por falha)
-- Tempo total + custo estimado
+Se alguma imagem falhou (status=failed no report.json), avise:
+> "{N} imagens viraram placeholder visível no PDF — provavelmente Gemini 503 ou
+> timeout persistente. Quer regenerar essas N específicas? (rodar de novo com
+> --workers 1 costuma resolver)"
 
 ## Decisões de design embarcadas
 
 - **Cover** sempre = primeira seção, headline gigante com palavra-chave em accent yellow
-- **Profile-spread** para "Perfil N:" / "Persona N:" — magazine 2-col com foto 4:5 esquerda + qtable direita
-- **Quote-photo** para citações longas (>20 palavras entre aspas) — fundo dark + mark amarelo + texto italic branco
-- **Hero-strip** para seções curtas de transição — banner horizontal 21:6 com caption overlay
-- **Opener-spread** para segunda seção (lede longo + comparação) — texto + imagem quadrada lado a lado
-- **Content-only** default para fundamentos com tabela compare ou grid de cards
+- **Profile-spread** para "Perfil N:" / "Persona N:" — magazine 2-col foto 4:5 + qtable
+- **Quote-photo** para citações longas (>20 palavras entre aspas)
+- **Hero-strip** para seções curtas de transição (banner 21:6 com caption overlay)
+- **Opener-spread** para segunda seção (lede + imagem 1:1 lado a lado)
+- **Content-only** default e usado em fundamentos com compare block ou grid de cards
 
 ## Arquivos do plugin
 
@@ -166,45 +137,33 @@ Reporte:
 metta-pdf/
 ├── skills/criar-pdf-metta/SKILL.md   # este arquivo
 ├── scripts/
-│   ├── parse_brief.py                # DOCX/MD → AST de seções
-│   ├── select_layout.py              # heurística seção → layout
-│   ├── suggest_images.py             # propõe pontos editoriais + prompts
-│   ├── generate_images.py            # nano-banana CLI paralelo + retry
-│   ├── render_html.py                # AST + image_map → HTML via Jinja2
-│   └── render_pdf.py                 # Chrome headless wrapper
-├── templates/
-│   ├── base.html                     # shell + tokens + symbol logo
-│   └── layouts/                      # 6 layouts canônicos
-├── tokens/
-│   ├── metta-ds.css                  # design system completo
-│   └── logo-symbols.svg              # logo M + variantes light/dark
-├── prompt-presets/
-│   └── arquetipos.md                 # 5 arquétipos de prompt por cena
-└── docs/PRD.md                       # PRD completo
+│   ├── build_pdf.py                  # ★ CLI unificado (use este)
+│   ├── setup_check.py                # validador de ambiente
+│   ├── parse_brief.py
+│   ├── select_layout.py
+│   ├── suggest_images.py
+│   ├── generate_images.py
+│   ├── render_html.py
+│   └── render_pdf.py
+├── templates/                        # base.html + 6 layouts
+├── tokens/                           # metta-ds.css + logo-symbols.svg
+├── prompt-presets/arquetipos.md      # 5 arquétipos de prompt
+└── docs/PRD.md
 ```
 
-## Output esperado
+## Troubleshooting comum
 
-```
-output/<doc-slug>/
-├── <doc-slug>.pdf                    # final
-├── <doc-slug>.html                   # fonte editável
-└── img/                              # imagens (4-8 dependendo do brief)
-    ├── cover.jpeg
-    ├── 01-opener-spread-*.jpeg
-    └── ...
-```
+Ver README.md do plugin pra tabela completa. Resumo do mais comum:
 
-## Troubleshooting
-
-- **Chrome não encontrado:** instalar Chrome ou Edge. `render_pdf.py` detecta automaticamente.
-- **nano-banana CLI não encontrado:** `npm install -g nano-banana` ou instalar manualmente em `~/.local/bin/`.
-- **GEMINI_API_KEY ausente:** exportar a key da Google AI Studio antes de rodar.
-- **Imagens timeout:** retry com prompt encurtado já é automático. Se falhar 2× → placeholder visível.
-- **Marcas reais no fundo das fotos:** prompts já tem "no readable brands/text", mas Gemini Flash às vezes burla. Vale regenerar 1× ou ignorar pra teste.
-- **Conteúdo cortado em alguma página:** layout estourou os 257mm úteis. Avisar pro classificador melhorar.
+| Sintoma | Mitigação |
+|---|---|
+| Imagem timeout 2x | Já entra em retry curto. Se falhar, vira placeholder. |
+| Imagem 503 (overload) | Já entra em backoff 5/15/30s. Se persistir, use `--workers 1`. |
+| `WinError 193` | Faltou Git Bash no Windows. Instalar Git for Windows resolve. |
+| Conteúdo cortado | Layout estourou 257mm úteis. Reportar pro backlog do classificador. |
+| Cover prompt falha | Sprint 3 simplificou. Se ainda falhar, gerar manualmente OU usar `--skip-images` + adicionar imagem depois. |
 
 ## Versão
 
-v1.1 (Sprint 2) — pipeline core + imagens com aprovação. Próximas fases:
-v1.2 multi-marca (Tiago), v1.3 templates adicionais (relatório, e-book).
+v1.2.0 (Sprint 3) — CLI unificado `build_pdf.py` + setup_check + classifier
+refinement + cover prompt encurtado. Pipeline pronto pra distribuição no time.

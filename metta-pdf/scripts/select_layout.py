@@ -45,21 +45,32 @@ def _has_questions_table(tables: list[list[list[str]]]) -> bool:
 
 
 def _has_compare_table(tables: list[list[list[str]]]) -> bool:
-    """Tabela compare tem header + N linhas × 2 cols com texto longo nos dois lados."""
+    """Tabela compare tem header + N linhas × 2 cols com texto longo nos dois lados.
+
+    Heurística melhorada: 2 cols + 2-4 rows + header com palavras antonímicas OU
+    body com texto longo (>40 chars) em ambas colunas.
+    """
     if not tables:
         return False
     t = tables[0]
     if len(t) < 2 or len(t[0]) != 2:
         return False
-    # Header tem palavras como 'Fechadas/Abertas', 'Antes/Depois', etc.
+    if len(t) > 4:
+        return False  # Provavelmente qtable (6 linhas), não compare
+    # Header tem palavras antonímicas
     h = " ".join(t[0]).lower()
-    return any(
-        a in h and b in h for a, b in [
-            ("fechada", "aberta"), ("antes", "depois"),
-            ("ruim", "bom"), ("certo", "errado"),
-            ("convencional", "novo"),
-        ]
-    ) or len(t) <= 3  # Curta = provavelmente compare
+    antonym_pairs = [
+        ("fechada", "aberta"), ("antes", "depois"),
+        ("ruim", "bom"), ("certo", "errado"),
+        ("convencional", "novo"), ("velho", "novo"),
+        ("manual", "automatico"),
+    ]
+    if any(a in h and b in h for a, b in antonym_pairs):
+        return True
+    # Header tem palavras distintas (não chave-valor curtas) e body tem texto longo nas 2 colunas
+    if any(len(row[0]) > 40 and len(row[1]) > 40 for row in t[1:]):
+        return True
+    return False
 
 
 def classify_sections(sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -95,10 +106,15 @@ def classify_sections(sections: list[dict[str, Any]]) -> list[dict[str, Any]]:
             layout = "hero-strip"
             reason.append("transitional short section")
 
-        # Rule 5: segunda seção com muitos parágrafos + tabela compare = opener-spread
-        elif i == 1 and len(body) >= 5:
+        # Rule 5a: seção com tabela compare → content-only (compare block dedicado)
+        elif _has_compare_table(tables):
+            layout = "content-only"
+            reason.append("has compare table")
+
+        # Rule 5b: segunda seção com muitos parágrafos SEM tabela compare = opener-spread
+        elif i == 1 and len(body) >= 5 and not tables:
             layout = "opener-spread"
-            reason.append("opener (second section with lots of body)")
+            reason.append("opener (second section with lots of body, no table)")
 
         # Default: content-only (compare block, grid cards, qtable, etc.)
         else:

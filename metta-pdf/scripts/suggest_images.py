@@ -58,17 +58,14 @@ def _slugify(s: str, max_len: int = 30) -> str:
 # ---------------------------------------------------------------------------
 
 def _prompt_cover(sec: dict, ctx: dict) -> str:
-    setor = ctx.get("setor", "the workplace context")
+    """Prompt enxuto pra cover — ficou frágil em ~900 chars no Sprint 2."""
+    setor = ctx.get("setor", "a workplace setting")
     return (
-        f"Wide editorial shot of {setor} at blue hour late afternoon, "
-        f"shelves and tools visible, large windows showing the surroundings. "
-        f"A professional in their late 30s mid-action, candid and absorbed. "
-        f"Compositionally the upper third of the frame is deliberately negative "
-        f"space for editorial text overlay. Warm tungsten interior key light "
-        f"with cool teal rim light from windows. Editorial documentary "
-        f"photography in the style of Bloomberg Businessweek, warm amber and "
-        f"teal cinematic color grade, low contrast, premium magazine quality. "
-        f"Shot on 24mm f/2.8, deep focus, slight 35mm film grain. " + NEGATIVE_CUES
+        f"Wide editorial shot of {setor}, late afternoon blue hour. "
+        f"A professional in mid-action, candid. Upper third negative space for text. "
+        f"Warm tungsten key light + cool teal rim. Editorial documentary, Bloomberg "
+        f"Businessweek style, warm amber + teal grade, low contrast. 24mm f/2.8, "
+        f"film grain. No readable brands or text."
     )
 
 
