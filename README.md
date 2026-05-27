@@ -7,6 +7,7 @@ Marketplace privado de plugins Claude Code do time Metta.
 | Plugin | Descrição |
 |---|---|
 | [metta-deck](./metta-deck) | Gera apresentações PPTX institucionais Metta fiéis ao PPT Modelo Geral |
+| [metta-pdf](./metta-pdf) | Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown aplicando design system |
 
 ## Instalação
 

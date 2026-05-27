@@ -1,0 +1,53 @@
+{% from "layouts/_doc_chrome.html" import doc_header, doc_footer %}
+{# Profile-spread — magazine 2-col: foto 4:5 esquerda + conteúdo (descrição + tags + tabela) direita #}
+<section class="page">
+  {{ doc_header(meta) }}
+
+  {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+  {% if title %}<h1 class="section">{{ title }}</h1>{% endif %}
+
+  <div class="profile-spread">
+    {% if image %}
+    <div class="hero keep">
+      <img src="{{ image.src }}" alt="{{ image.alt | default('') }}">
+      {% if image.badge %}<span class="badge">{{ image.badge }}</span>{% endif %}
+      {% if image.caption %}<div class="caption">{{ image.caption }}</div>{% endif %}
+    </div>
+    {% else %}
+    <div class="hero keep" style="background:var(--surface-container); display:flex; align-items:center; justify-content:center;">
+      <span style="font-family:var(--ff-expanded); font-stretch:132%; font-weight:540; text-transform:uppercase; letter-spacing:.14em; font-size:9pt; color:var(--on-surface-variant); padding:20px; text-align:center">[imagem]<br>{{ image_placeholder | default('retrato do perfil') }}</span>
+    </div>
+    {% endif %}
+
+    <div class="content">
+      {% if description %}<p class="profile-desc" style="margin-top:0">{{ description | safe }}</p>{% endif %}
+
+      {% if tags %}
+      <div class="tag-row">
+        {% for t in tags %}
+        <span class="tag">{{ t }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if subheading %}<h2 class="sub" style="margin-top:var(--s-5)">{{ subheading }}</h2>{% endif %}
+
+      {% if qtable %}
+      <table class="qtable keep">
+        {% for row in qtable %}
+        <tr><td class="key">{{ row.key }}</td><td class="val">{{ row.val | safe }}</td></tr>
+        {% endfor %}
+      </table>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if callout %}
+  <div class="callout keep">
+    <div class="label">{{ callout.label | default('⚠ Atenção') }}</div>
+    <p>{{ callout.body | safe }}</p>
+  </div>
+  {% endif %}
+
+  {{ doc_footer(footer_left, page_num) }}
+</section>

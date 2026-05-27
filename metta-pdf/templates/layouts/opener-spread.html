@@ -1,0 +1,65 @@
+{% from "layouts/_doc_chrome.html" import doc_header, doc_footer %}
+{# Opener-spread — texto (lede + para) à esquerda + imagem 1:1 à direita #}
+<section class="page">
+  {{ doc_header(meta) }}
+
+  {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+  {% if title %}<h1 class="section">{{ title }}</h1>{% endif %}
+
+  <div class="opener-spread">
+    <div>
+      {% if lede %}<p class="lede" style="margin:0">{{ lede | safe }}</p>{% endif %}
+      {% for p in paragraphs %}
+      <p style="margin-top:var(--s-4)">{{ p | safe }}</p>
+      {% endfor %}
+    </div>
+    {% if image %}
+    <div class="visual keep">
+      <img src="{{ image.src }}" alt="{{ image.alt | default('') }}">
+      {% if image.badge %}<span class="badge">{{ image.badge }}</span>{% endif %}
+    </div>
+    {% else %}
+    <div class="visual keep" style="background:var(--surface-container); display:flex; align-items:center; justify-content:center;">
+      <span style="font-family:var(--ff-expanded); font-stretch:132%; font-weight:540; text-transform:uppercase; letter-spacing:.14em; font-size:9pt; color:var(--on-surface-variant); text-align:center; padding:20px">[imagem]<br>{{ image_placeholder | default('descrição da cena') }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if blocks %}
+    {% for block in blocks %}
+      {% if block.type == 'compare' %}
+        <div class="grid-2">
+          <div class="card">
+            <div class="eyebrow" style="color:#B38400">{{ block.left.eyebrow | default('') }}</div>
+            <div class="title">{{ block.left.title }}</div>
+            <p class="body">{{ block.left.body | safe }}</p>
+          </div>
+          <div class="card elevated">
+            <div class="eyebrow" style="color:var(--on-surface)">{{ block.right.eyebrow | default('') }}</div>
+            <div class="title">{{ block.right.title }}</div>
+            <p class="body">{{ block.right.body | safe }}</p>
+          </div>
+        </div>
+      {% elif block.type == 'subheading' %}
+        <h2 class="sub">{{ block.text }}</h2>
+        {% if block.subtitle %}<p class="small">{{ block.subtitle }}</p>{% endif %}
+      {% elif block.type == 'benefit_list' %}
+        <div class="blist">
+          {% for b in block.items %}
+          <div class="b">
+            <div class="check">{{ b.icon | default('+') }}</div>
+            <div>
+              <div class="title">{{ b.title }}</div>
+              <div class="body">{{ b.body | safe }}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {% if closing %}<p>{{ closing | safe }}</p>{% endif %}
+
+  {{ doc_footer(footer_left, page_num) }}
+</section>

@@ -1,0 +1,50 @@
+{% from "layouts/_doc_chrome.html" import doc_header, doc_footer %}
+{# Hero-strip — banner horizontal (21:6/21:8/16:9) com caption overlay #}
+<section class="page">
+  {{ doc_header(meta) }}
+
+  {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+  {% if title %}<h1 class="section">{{ title }}</h1>{% endif %}
+
+  {% if image %}
+  <div class="hero-strip {{ strip_size | default('h-sm') }} keep">
+    <img src="{{ image.src }}" alt="{{ image.alt | default('') }}">
+    {% if image.label or image.caption %}
+    <div class="caption-overlay">
+      {% if image.label %}<span class="label">{{ image.label }}</span>{% endif %}
+      {% if image.caption %}<span class="text">{{ image.caption }}</span>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="hero-strip {{ strip_size | default('h-sm') }} keep" style="background:var(--surface-container); display:flex; align-items:center; justify-content:center;">
+    <span style="font-family:var(--ff-expanded); font-stretch:132%; font-weight:540; text-transform:uppercase; letter-spacing:.14em; font-size:9pt; color:var(--on-surface-variant); padding:20px">[imagem]&nbsp; {{ image_placeholder | default('descrição da cena hero') }}</span>
+  </div>
+  {% endif %}
+
+  {% if lede %}<p class="lede">{{ lede | safe }}</p>{% endif %}
+
+  {% for p in paragraphs %}
+  <p style="margin-top:var(--s-3)">{{ p | safe }}</p>
+  {% endfor %}
+
+  {% if blocks %}
+    {% for block in blocks %}
+      {% if block.type == 'tags' %}
+        <div class="tag-row">
+          {% for t in block.items %}
+          <span class="tag{% if t.filled %} filled{% endif %}">{{ t.label | default(t) }}</span>
+          {% endfor %}
+        </div>
+      {% elif block.type == 'yellow_band' %}
+        <div class="yellow-band"></div>
+      {% elif block.type == 'subheading' %}
+        <h2 class="sub">{{ block.text }}</h2>
+      {% elif block.type == 'small' %}
+        <p class="small">{{ block.text | safe }}</p>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+
+  {{ doc_footer(footer_left, page_num) }}
+</section>

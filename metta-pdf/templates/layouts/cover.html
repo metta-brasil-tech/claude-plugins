@@ -1,0 +1,29 @@
+{# Cover layout — background image opcional + headline grande com accent yellow #}
+<section class="page cover">
+  <div class="cover-inner">
+    {% if cover_image %}
+    <div class="cover-bg" style="background-image:url('{{ cover_image }}')"></div>
+    <div class="cover-bg-overlay"></div>
+    {% endif %}
+    <div class="cover-top">
+      <div class="cover-brand">
+        <svg class="logo-h lg{% if cover_image %} light{% endif %}" viewBox="0 0 445 123" xmlns="http://www.w3.org/2000/svg"><use href="#metta-logo"/></svg>
+      </div>
+      {% if eyebrow %}<span class="cover-eyebrow">{{ eyebrow }}</span>{% endif %}
+    </div>
+
+    <div class="cover-headline-wrap">
+      {% if kicker %}<span class="eyebrow" style="margin-bottom:18px; display:block;">{{ kicker }}</span>{% endif %}
+      <h1 class="cover-headline">
+        {{ headline_lines | safe }}
+      </h1>
+      {% if deck %}<p class="cover-deck">{{ deck }}</p>{% endif %}
+    </div>
+
+    <div class="cover-bottom">
+      {% if footer_left %}<span class="cover-tag">{{ footer_left | safe }}</span>{% endif %}
+      {% if footer_right %}<span class="cover-tag">{{ footer_right }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="cover-band"></div>
+</section>

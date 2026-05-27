@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>{{ doc_title }} — Metta</title>
+<style>
+{{ tokens_css | safe }}
+</style>
+</head>
+<body>
+
+{{ logo_symbols | safe }}
+
+{% for page in pages %}
+{{ page | safe }}
+{% endfor %}
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{# Header + footer institucional reutilizado em todas as páginas internas #}
+{% macro doc_header(meta) -%}
+<header class="doc-header">
+  <div class="brand"><svg class="logo-h sm" viewBox="0 0 445 123" xmlns="http://www.w3.org/2000/svg"><use href="#metta-logo"/></svg></div>
+  <span class="meta">{{ meta }}</span>
+</header>
+{%- endmacro %}
+
+{% macro doc_footer(footer_left, page_num) -%}
+<footer class="doc-footer">
+  <span>{{ footer_left }}</span>
+  <span class="page-num">{{ "%02d" | format(page_num) }}</span>
+</footer>
+{%- endmacro %}
