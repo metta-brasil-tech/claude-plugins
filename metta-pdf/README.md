@@ -12,7 +12,30 @@ Gerador de **PDFs institucionais editoriais Metta** a partir de DOCX/Markdown. A
 
 ```bash
 claude plugin marketplace add metta-brasil-tech/claude-plugins
-claude plugin install metta-pdf
+claude plugin install metta-pdf@metta
+```
+
+### Workaround se der "Failed to finalize marketplace cache" no Windows
+
+Bug conhecido do Claude CLI no Windows: o rename interno da pasta de cache falha
+com `EPERM`. Solução manual em 3 passos:
+
+```bash
+# 1. clonar o repo direto na pasta de marketplaces
+cd ~/.claude/plugins/marketplaces
+git clone https://github.com/metta-brasil-tech/claude-plugins.git metta
+
+# 2. adicionar entry em ~/.claude/plugins/known_marketplaces.json:
+#    {
+#      "metta": {
+#        "source": { "source": "github", "repo": "metta-brasil-tech/claude-plugins" },
+#        "installLocation": "C:\\Users\\<user>\\.claude\\plugins\\marketplaces\\metta",
+#        "lastUpdated": "2026-05-27T00:00:00.000Z"
+#      }
+#    }
+
+# 3. instalar normalmente
+claude plugin install metta-pdf@metta
 ```
 
 ## Uso
