@@ -15,8 +15,8 @@
     {
       "name": "metta-pdf",
       "source": "./metta-pdf",
-      "version": "1.0.0",
-      "description": "Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown aplicando o design system + 6 layouts canônicos"
+      "version": "1.1.0",
+      "description": "Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown aplicando o design system + 6 layouts canônicos + imagens AI via nano-banana"
     }
   ]
 }

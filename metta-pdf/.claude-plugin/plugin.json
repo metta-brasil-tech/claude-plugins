@@ -1,7 +1,7 @@
 {
   "name": "metta-pdf",
-  "version": "1.0.0",
-  "description": "Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown, seguindo o design system. Skill /criar-pdf-metta + pipeline Python (parse → layout → HTML → Chrome headless → PDF). Sprint 1 sem imagens; Sprint 2 adicionará geração de imagens AI via nano-banana.",
+  "version": "1.1.0",
+  "description": "Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown, seguindo o design system. Skill /criar-pdf-metta + pipeline Python (parse → layout → suggest images → user-approve → generate via nano-banana → HTML → Chrome headless → PDF). Imagens AI via Gemini Flash com retry de timeout + backoff em 503.",
   "author": {
     "name": "Metta",
     "url": "https://metta.com.br"
