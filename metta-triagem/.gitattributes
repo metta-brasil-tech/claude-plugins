@@ -1,0 +1,2 @@
+# Shell script precisa de LF — CRLF quebra o shebang em Mac/Linux.
+*.sh text eol=lf

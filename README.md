@@ -8,6 +8,7 @@ Marketplace privado de plugins Claude Code do time Metta.
 |---|---|
 | [metta-deck](./metta-deck) | Gera apresentações PPTX institucionais Metta fiéis ao PPT Modelo Geral |
 | [metta-pdf](./metta-pdf) | Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown aplicando design system |
+| [metta-triagem](./metta-triagem) | Roteia tarefas pro modelo certo (Haiku/Sonnet/Opus) pra economizar tokens — hook + skill /triagem |
 
 ## Instalação
 

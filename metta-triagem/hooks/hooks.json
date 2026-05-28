@@ -1,0 +1,16 @@
+{
+  "description": "Triagem heurística de complexidade — roteia modelo via dica no contexto. Zero custo, nunca bloqueia.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/triagem.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "metta-triagem",
+  "version": "1.0.0",
+  "description": "Roteamento automático de tarefas pro modelo certo (Haiku/Sonnet/Opus) pra economizar tokens. Hook UserPromptSubmit classifica o prompt por heurística e sugere delegação; skill /triagem + subagent quick-classifier (Haiku) fazem classificação estruturada sob demanda.",
+  "author": {
+    "name": "Metta",
+    "url": "https://metta.com.br"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["metta", "triagem", "roteamento", "modelo", "tokens", "haiku", "hook", "custo"]
+}

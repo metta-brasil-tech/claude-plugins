@@ -17,6 +17,12 @@
       "source": "./metta-pdf",
       "version": "1.2.1",
       "description": "Gera PDFs institucionais editoriais Metta a partir de DOCX/Markdown. CLI unificado, classificador refinado, prompts otimizados, ready pra distribuição no time."
+    },
+    {
+      "name": "metta-triagem",
+      "source": "./metta-triagem",
+      "version": "1.0.0",
+      "description": "Roteamento automático de tarefas pro modelo certo (Haiku/Sonnet/Opus) pra economizar tokens — hook de triagem + skill /triagem + subagent quick-classifier"
     }
   ]
 }
