@@ -229,7 +229,7 @@ def _build_opener(sec: dict, ctx: dict) -> dict:
     elif len(items_with_desc) >= 2:
         blocks.append({
             "type": "benefit_list",
-            "entries": [{"title": it["title"], "body": it.get("body", ""), "icon": "•"} for it in items_with_desc],
+            "entries": [{"title": it["title"], "body": it.get("body", ""), "icon": str(i + 1)} for i, it in enumerate(items_with_desc)],
         })
 
     # Aplica inline MD em todos blocks
@@ -297,9 +297,10 @@ def _build_content_only(sec: dict, ctx: dict) -> dict:
             return
         # benefit_list (mesmo com 1 item) — preserva título E corpo.
         # (antes: 1 item virava parágrafo só com o título, descartando o corpo.)
+        # icon = número sequencial (reinicia a cada subseção, pois cada ### faz um flush).
         blocks.append({
             "type": "benefit_list",
-            "entries": [{"title": _md(it["title"]), "body": _md(it.get("body", "")), "icon": "•"} for it in pending],
+            "entries": [{"title": _md(it["title"]), "body": _md(it.get("body", "")), "icon": str(i + 1)} for i, it in enumerate(pending)],
         })
 
     pending_list: list[dict] = []
@@ -398,7 +399,7 @@ def _build_hero_strip(sec: dict, ctx: dict) -> dict:
         # Tem items longos (ou mix) → benefit_list ao invés de tags
         blocks.append({
             "type": "benefit_list",
-            "entries": [{"title": _md(t), "body": "", "icon": "•"} for t in list_items],
+            "entries": [{"title": _md(t), "body": "", "icon": str(i + 1)} for i, t in enumerate(list_items)],
         })
 
     return {
