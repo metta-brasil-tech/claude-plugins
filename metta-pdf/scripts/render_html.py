@@ -295,14 +295,12 @@ def _build_content_only(sec: dict, ctx: dict) -> dict:
     def flush_pending_list(pending: list[dict]) -> None:
         if not pending:
             return
-        # Se >=2 items, vira benefit_list; se 1, vira paragraph
-        if len(pending) >= 2:
-            blocks.append({
-                "type": "benefit_list",
-                "entries": [{"title": _md(it["title"]), "body": _md(it.get("body", "")), "icon": "•"} for it in pending],
-            })
-        else:
-            blocks.append({"type": "paragraph", "body": _md(pending[0]["title"])})
+        # benefit_list (mesmo com 1 item) — preserva título E corpo.
+        # (antes: 1 item virava parágrafo só com o título, descartando o corpo.)
+        blocks.append({
+            "type": "benefit_list",
+            "entries": [{"title": _md(it["title"]), "body": _md(it.get("body", "")), "icon": "•"} for it in pending],
+        })
 
     pending_list: list[dict] = []
 
@@ -526,6 +524,7 @@ def render(
     footer_left: str = "Metta · Inteligência Comercial",
     module_label: str = "",
     image_map: dict[str, dict] | None = None,
+    section_label: str | None = None,
 ) -> str:
     """
     image_map: dict opcional {section_title: {src, alt, badge, caption}} —
@@ -560,7 +559,7 @@ def render(
             "footer_left": footer_left,
             "page_num": page_num,
             "section_image": section_image,
-            "section_eyebrow": _eyebrow_for(sec),
+            "section_eyebrow": _eyebrow_for(sec, section_label),
             "section_tags": _tags_for(sec),
             "cover_image": image_map.get("__cover__", {}).get("src") if image_map else None,
             "kicker": _kicker_for(sec),
@@ -579,7 +578,7 @@ def render(
     return html
 
 
-def _eyebrow_for(sec: dict) -> str:
+def _eyebrow_for(sec: dict, section_label: str | None = None) -> str:
     idx = sec.get("section_index", 0)
     layout = sec.get("layout", "")
     if layout == "profile-spread":
@@ -591,7 +590,8 @@ def _eyebrow_for(sec: dict) -> str:
         return "Permissão"
     if layout == "hero-strip":
         return "Próximo passo"
-    return f"Fundamento {idx}"
+    # content-only: usa label custom (estático) se fornecido, senão "Fundamento N"
+    return section_label if section_label else f"Fundamento {idx}"
 
 
 def _tags_for(sec: dict) -> list[str]:

@@ -111,6 +111,8 @@
     font-size:8pt; color:var(--on-surface-variant);
   }
   .doc-footer .page-num::before{ content:"Pág. "; }
+  /* tracking mínimo no número: .14em do rodapé separava dígitos (ex: "1 1") */
+  .doc-footer .page-num{ letter-spacing:.02em; }
 
   /* ===== COVER PAGE ===== */
   .cover{ padding:0; }

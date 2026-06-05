@@ -70,6 +70,7 @@ def main() -> int:
     parser.add_argument("--title", default=None, help="Título do doc (override do nome do brief)")
     parser.add_argument("--meta", default=None, help="Texto do header das páginas internas (ex: '02 · Visualize o Cenário')")
     parser.add_argument("--module-label", default=None, help="Eyebrow da capa (ex: 'Módulo 02 · Treinamento')")
+    parser.add_argument("--section-label", default=None, help="Eyebrow estático das seções content-only (ex: 'Ângulo de Copy'). Default: 'Fundamento N'")
     parser.add_argument("--footer-left", default="Metta · Inteligência Comercial")
     parser.add_argument("--skip-images", action="store_true", help="Pula geração de imagens (Sprint 1 mode com placeholders)")
     parser.add_argument("--workers", type=int, default=2, help="Workers paralelos pra nano-banana (default 2)")
@@ -173,6 +174,7 @@ def main() -> int:
         module_label=module_label,
         footer_left=args.footer_left,
         image_map=image_map,
+        section_label=args.section_label,
     )
     html_path = output_dir / f"{slug}.html"
     html_path.write_text(html, encoding="utf-8")
