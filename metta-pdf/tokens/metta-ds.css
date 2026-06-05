@@ -56,7 +56,10 @@
              font-family:var(--ff-regular); -webkit-print-color-adjust:exact;
              print-color-adjust:exact; }
   body{ font-size:11.5pt; line-height:1.55;
-        font-feature-settings:"ss01","ss02","kern"; }
+        font-feature-settings:"kern"; }
+  /* NOTA: ss01/ss02 (stylistic sets) inserem artefatos visuais (traços entre
+     palavras + risco) na Zalando Sans Expanded usada no display. Inter (corpo)
+     ignorava, por isso só títulos/heads quebravam. Mantido só "kern". */
 
   .page{
     width:210mm; height:297mm; padding:18mm 18mm 22mm 18mm;
