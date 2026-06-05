@@ -1,8 +1,5 @@
-{% from "layouts/_doc_chrome.html" import doc_header, doc_footer %}
 {# Profile-spread — magazine 2-col: foto 4:5 esquerda + conteúdo (descrição + tags + tabela) direita #}
-<section class="page">
-  {{ doc_header(meta) }}
-
+<section class="doc-section">
   {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
   {% if title %}<h1 class="section">{{ title }}</h1>{% endif %}
 
@@ -48,6 +45,4 @@
     <p>{{ callout.body | safe }}</p>
   </div>
   {% endif %}
-
-  {{ doc_footer(footer_left, page_num) }}
 </section>

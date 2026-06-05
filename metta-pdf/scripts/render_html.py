@@ -538,6 +538,7 @@ def render(
     tokens_css = (TOKENS_DIR / "metta-ds.css").read_text(encoding="utf-8")
     logo_symbols = (TOKENS_DIR / "logo-symbols.svg").read_text(encoding="utf-8")
 
+    cover_html = ""
     pages_html = []
     page_num = 0
     for sec in enriched_sections:
@@ -568,12 +569,22 @@ def render(
         }
         data = builder(sec, ctx)
         layout_tpl = env.get_template(f"layouts/{layout}.html")
-        pages_html.append(layout_tpl.render(**data))
+        rendered = layout_tpl.render(**data)
+        # Capa é standalone (full-bleed, fora da tabela de chrome);
+        # demais seções fluem no tbody com header/footer repetidos.
+        if layout == "cover":
+            cover_html = rendered
+        else:
+            pages_html.append(rendered)
 
     html = base.render(
         doc_title=doc_title,
         tokens_css=tokens_css,
         logo_symbols=logo_symbols,
+        cover=cover_html,
+        meta_text=meta_text,
+        footer_left=footer_left,
+        footer_right="",
         pages=pages_html,
     )
     return html

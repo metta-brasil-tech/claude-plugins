@@ -11,9 +11,31 @@
 
 {{ logo_symbols | safe }}
 
+{# Capa: página standalone full-bleed, fora da tabela (sem header/footer). #}
+{{ cover | safe }}
+
+{# Conteúdo interno: tabela com header/footer repetidos em cada página. #}
+<table class="doc-layout">
+<thead><tr><td>
+  <div class="run-head">
+    <div class="brand"><svg class="logo-h sm" viewBox="0 0 445 123" xmlns="http://www.w3.org/2000/svg"><use href="#metta-logo"/></svg></div>
+    <span class="meta">{{ meta_text }}</span>
+  </div>
+  <div class="head-gap"></div>
+</td></tr></thead>
+<tfoot><tr><td>
+  <div class="foot-gap"></div>
+  <div class="run-foot">
+    <span>{{ footer_left | safe }}</span>
+    <span class="foot-right">{{ footer_right }}</span>
+  </div>
+</td></tr></tfoot>
+<tbody><tr><td>
 {% for page in pages %}
 {{ page | safe }}
 {% endfor %}
+</td></tr></tbody>
+</table>
 
 </body>
 </html>

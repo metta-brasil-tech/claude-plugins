@@ -50,7 +50,10 @@
   }
 
   /* ===== PAGE — A4 print ===== */
-  @page { size:A4; margin:0; }
+  /* Margens reservam espaço pro running header/footer (thead/tfoot).
+     A capa (1ª página) é full-bleed via @page :first. */
+  @page { size:A4; margin:15mm 18mm 14mm 18mm; }
+  @page :first { margin:0; }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ background:var(--surface); color:var(--on-surface);
              font-family:var(--ff-regular); -webkit-print-color-adjust:exact;
@@ -113,6 +116,49 @@
   .doc-footer .page-num::before{ content:"Pág. "; }
   /* tracking mínimo no número: .14em do rodapé separava dígitos (ex: "1 1") */
   .doc-footer .page-num{ letter-spacing:.02em; }
+
+  /* ===== RUNNING CHROME — auto-paginação via thead/tfoot =====
+     O documento interno é uma <table class="doc-layout">; thead/tfoot repetem
+     em TODA página com mesma estrutura, espaçamento e margem. Conteúdo no tbody
+     flui e quebra de página sozinho — cards nunca cortam (break-inside:avoid). */
+  .doc-layout{ width:100%; border-collapse:collapse; }
+  .doc-layout > thead td,
+  .doc-layout > tfoot td,
+  .doc-layout > tbody > tr > td{ border:none; padding:0; }
+
+  .run-head{
+    display:flex; align-items:center; justify-content:space-between;
+    height:36px; border-bottom:1px solid var(--outline);
+  }
+  .run-head .brand{ display:flex; align-items:center; height:22px; }
+  .run-head .brand svg{ display:block; }
+  .run-head .meta{
+    font-family:var(--ff-expanded); font-stretch:132%; font-weight:540;
+    text-transform:uppercase; letter-spacing:.16em;
+    font-size:8.5pt; color:var(--on-surface-variant);
+    height:22px; display:flex; align-items:center; line-height:1;
+  }
+  .head-gap{ height:var(--s-6); }   /* respiro header → conteúdo */
+
+  .foot-gap{ height:var(--s-6); }   /* respiro conteúdo → footer */
+  .run-foot{
+    display:flex; align-items:center; justify-content:space-between;
+    padding-top:var(--s-4); border-top:1px solid var(--outline);
+    font-family:var(--ff-expanded); font-stretch:132%; font-weight:540;
+    text-transform:uppercase; letter-spacing:.14em;
+    font-size:8pt; color:var(--on-surface-variant);
+  }
+  .run-foot .foot-right{ letter-spacing:.02em; color:var(--on-surface-variant); }
+
+  /* Seção de conteúdo: flui no tbody; cada uma começa em página nova (menos a 1ª). */
+  .doc-section + .doc-section{ break-before:page; }
+
+  /* Nunca cortar no meio destes elementos ao paginar. */
+  .blist .b, .card, .compare, .compare .col, .callout, .equation,
+  .quote, .quote-photo, .hero-strip, .opener-spread .visual,
+  .simple-table tr, .qtable tr{ break-inside:avoid; }
+  /* Título/eyebrow/subtítulo não ficam órfãos no fim da página. */
+  .doc-section > .eyebrow, h1.section, h2.sub{ break-after:avoid; }
 
   /* ===== COVER PAGE ===== */
   .cover{ padding:0; }
