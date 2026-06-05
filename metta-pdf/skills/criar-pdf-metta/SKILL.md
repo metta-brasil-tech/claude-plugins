@@ -160,7 +160,7 @@ Ver README.md do plugin pra tabela completa. Resumo do mais comum:
 | Imagem timeout 2x | Já entra em retry curto. Se falhar, vira placeholder. |
 | Imagem 503 (overload) | Já entra em backoff 5/15/30s. Se persistir, use `--workers 1`. |
 | `WinError 193` | Faltou Git Bash no Windows. Instalar Git for Windows resolve. |
-| Conteúdo cortado | Layout estourou 257mm úteis. Reportar pro backlog do classificador. |
+| Conteúdo cortado | Não deve mais ocorrer: o layout pagina automaticamente (running header/footer via thead/tfoot + `break-inside:avoid` nos cards). Não precisa dividir seção na mão. Se um único elemento for maior que uma página inteira, aí sim quebrar esse bloco específico. |
 | Cover prompt falha | Sprint 3 simplificou. Se ainda falhar, gerar manualmente OU usar `--skip-images` + adicionar imagem depois. |
 
 ## Versão
