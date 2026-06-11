@@ -9,8 +9,8 @@
     {
       "name": "metta-deck",
       "source": "./metta-deck",
-      "version": "1.0.0",
-      "description": "Gera apresentações PPTX institucionais Metta fiéis ao PPT Modelo Geral"
+      "version": "1.1.0",
+      "description": "Apresentações PPTX institucionais Metta (/criar-slide-metta) + documentos PDF white-label na identidade do cliente (/cliente-pdf)"
     },
     {
       "name": "metta-pdf",

@@ -1,6 +1,9 @@
 # metta-deck
 
-Plugin Claude Code que gera apresentações PPTX institucionais Metta abrindo o `PPT Modelo Geral` como template e substituindo apenas os textos placeholder pelo conteúdo do briefing. Preserva 100% das configurações originais (imagens, layouts, fontes embutidas, slide masters, theme XML).
+Plugin Claude Code com duas skills:
+
+- **`/criar-slide-metta`** — apresentações PPTX institucionais Metta abrindo o `PPT Modelo Geral` como template e substituindo apenas os textos placeholder pelo conteúdo do briefing. Preserva 100% das configurações originais (imagens, layouts, fontes embutidas, slide masters, theme XML).
+- **`/cliente-pdf`** — documentos PDF na identidade visual **do CLIENTE** (white-label): manual, livro de operações, checklist, procedimento, relatório. Motor marca-aware (separa marca de conteúdo) + 11 blocos. HTML+CSS → Chrome headless → PDF.
 
 ## Instalação
 
@@ -46,10 +49,18 @@ python "${CLAUDE_PLUGIN_ROOT}/scripts/build_deck.py" \
 ```
 metta-deck/
 ├── .claude-plugin/plugin.json          # manifesto
-├── skills/criar-slide-metta/SKILL.md   # skill principal
+├── skills/
+│   ├── criar-slide-metta/SKILL.md      # skill de slides (PPTX)
+│   └── cliente-pdf/SKILL.md            # skill de PDF white-label do cliente
 ├── scripts/
-│   ├── build_deck.py                   # runner copy-and-substitute
-│   └── builders.py                     # lib pra tipos novos (timeline/equipe/etc)
+│   ├── build_deck.py                   # runner copy-and-substitute (slides)
+│   ├── builders.py                     # lib pra tipos novos (timeline/equipe/etc)
+│   └── cliente-pdf/                    # motor do /cliente-pdf
+│       ├── build.py                    # CLI: build.py <marca|caminho> <content.json> [out.pdf]
+│       ├── base.css                    # layout + blocos (marca-agnóstico)
+│       ├── schema.md                   # referência do JSON de conteúdo
+│       ├── _template/                  # pasta-base da marca (copiar pra criar cliente)
+│       └── examples/showcase-blocos.json
 ├── assets/
 │   ├── modelo-geral.pptx               # template canônico (25 slides, 14MB)
 │   ├── logo_dark.png
@@ -57,6 +68,22 @@ metta-deck/
 └── docs/
     └── metta-pptx-canonico.md          # ficha técnica DNA visual
 ```
+
+## /cliente-pdf — uso rápido
+
+```bash
+# 1. criar a marca do cliente a partir do _template (FORA do plugin, no vault)
+cp -r "${CLAUDE_PLUGIN_ROOT}/scripts/cliente-pdf/_template" <vault>/<cliente>
+#    editar <cliente>/brand.json + assets/logo.png + fonts/*.ttf
+
+# 2. gerar o PDF (1º arg = caminho da pasta da marca)
+python "${CLAUDE_PLUGIN_ROOT}/scripts/cliente-pdf/build.py" \
+  "<vault>/<cliente>" ./conteudo.json ./cliente-doc.pdf
+```
+
+Blocos do conteúdo: `greeting`, `section`, `heading`, `paragraph`, `list`
+(bullet/number/check), `keyvalue`, `table`, `image`, `callout`, `divider`, `spacer`.
+Inline `**negrito**` / `*itálico*`. Ver `scripts/cliente-pdf/schema.md`.
 
 ## Como funciona
 
@@ -78,11 +105,13 @@ metta-deck/
 ## Requisitos
 
 - Python 3.10+ no PATH
-- `pip install python-pptx`
+- `/criar-slide-metta`: `pip install python-pptx`
+- `/cliente-pdf`: Chrome ou Edge instalado (detecção automática) + `pip install PyMuPDF` (só pra QA visual)
 
 ## Versão
 
-v1.0.0 · 2026-05-26
+v1.1.0 · 2026-06-11 — adicionada skill `/cliente-pdf` (documentos PDF white-label na identidade do cliente; generaliza o gerador MIME).
+v1.0.0 · 2026-05-26 — PPTX via copy-and-substitute.
 
 ## Licença
 

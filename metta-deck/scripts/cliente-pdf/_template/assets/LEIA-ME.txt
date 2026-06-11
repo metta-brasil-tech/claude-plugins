@@ -1,0 +1,12 @@
+Coloque aqui os assets visuais da marca do cliente:
+
+  logo.png    — logo do cliente (PNG transparente, qualidade vetorial).
+  footer.png  — faixa/arte de rodapé full-bleed (opcional, se header.type/footer.type usar imagem).
+
+Como extrair com qualidade a partir de um PDF/modelo do cliente:
+  - Logo e ornamentos: extrair como PNG transparente direto dos VETORES do PDF
+    (não rasterizar a página). PyMuPDF get_drawings / recorte vetorial.
+  - Se o cliente mandar SVG/AI, exportar PNG @3x com fundo transparente.
+
+Qualquer imagem referenciada no conteúdo (blocos "image") também pode morar aqui
+e ser apontada como "assets/minha-imagem.png".

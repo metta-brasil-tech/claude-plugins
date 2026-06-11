@@ -1,0 +1,106 @@
+/* cliente-pdf — base layout (marca-agnóstico).
+   Todas as cores/fontes vêm de :root, injetado pelo build.py a partir do brand.json.
+   Ajustes finos por cliente: brands/<marca>/brand.css (carregado depois deste). */
+
+*{ box-sizing:border-box; }
+@page{ size:var(--page-size,A4); margin:0; }
+html,body{ margin:0; padding:0; }
+body{
+  font-family:var(--font-body),system-ui,sans-serif;
+  color:var(--color-text);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* running header/footer via thead/tfoot — repetem a cada página */
+table.layout{ width:100%; border-collapse:collapse; }
+table.layout > thead td,
+table.layout > tfoot td,
+table.layout > tbody td{ padding:0; border:none; vertical-align:top; }
+
+/* ---------- HEADER (full-bleed) ---------- */
+.hdr{
+  position:relative; width:100%; overflow:hidden;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 var(--margin-x);
+}
+.hdr .title{
+  font-family:var(--font-display),sans-serif; font-weight:800;
+  line-height:1; letter-spacing:-0.01em; margin:0; white-space:nowrap;
+}
+.hdr .logo{ width:auto; display:block; }
+.head-gap{ height:14pt; }
+
+/* ---------- FOOTER (full-bleed) ---------- */
+.foot-gap{ height:10pt; }
+.ft{ width:100%; line-height:0; }
+.ft img{ width:100%; display:block; }
+.ft-txt{
+  padding:6pt var(--margin-x); font-size:8pt; color:var(--color-muted);
+  border-top:.75pt solid var(--color-rule); text-align:center;
+}
+
+/* ---------- BODY ---------- */
+.content{ padding:0 var(--margin-x); }
+
+/* saudação */
+.greet{ margin:0 0 9pt; }
+.greet .q{ font-weight:700; font-size:11pt; margin:0 0 1pt; color:var(--color-heading); }
+.greet p{ font-weight:400; font-size:11pt; line-height:1.32; margin:0; max-width:520pt; }
+
+/* seções */
+.sec{ margin:0 0 9pt; break-inside:avoid; }
+.sec-h{
+  font-family:var(--font-display),sans-serif; font-weight:800;
+  font-size:12pt; letter-spacing:.005em; color:var(--color-heading);
+  margin:0 0 3pt; text-transform:uppercase;
+}
+
+/* headings soltos */
+.hd{ font-family:var(--font-display),sans-serif; color:var(--color-heading); margin:0 0 4pt; }
+.hd1{ font-size:18pt; font-weight:800; }
+.hd2{ font-size:13pt; font-weight:800; text-transform:uppercase; letter-spacing:.005em; }
+.hd3{ font-size:11pt; font-weight:700; }
+
+/* parágrafo */
+.p{ font-size:10.4pt; line-height:1.4; font-weight:400; margin:0 0 6pt; max-width:520pt; }
+
+/* listas */
+.lst{ margin:0 0 9pt; padding:0; }
+.lst.bullet{ list-style:none; }
+.lst.bullet li{ padding-left:13pt; text-indent:-13pt; }
+.lst.bullet li::before{ content:"•"; color:var(--color-accent); font-weight:700; margin-right:6pt; }
+.lst.num{ padding-left:18pt; }
+.lst.check{ list-style:none; }
+.lst li{
+  font-size:10.4pt; line-height:1.3; font-weight:400; color:var(--color-text);
+  margin-bottom:2.4pt;
+}
+.lst.check li{ padding-left:13pt; text-indent:-13pt; }
+.lst.check li .cb{ font-weight:700; margin-right:3pt; color:var(--color-accent); }
+.lst b{ font-weight:700; }
+
+/* tabela */
+.tbl{ width:100%; border-collapse:collapse; margin:0 0 9pt; font-size:9.6pt; }
+.tbl th{
+  text-align:left; font-family:var(--font-display),sans-serif; font-weight:700;
+  color:#fff; background:var(--color-primary); padding:5pt 7pt;
+}
+.tbl td{ padding:4.5pt 7pt; border-bottom:.6pt solid var(--color-rule); }
+.tbl tbody tr:nth-child(even) td{ background:rgba(0,0,0,.025); }
+
+/* imagem */
+.figwrap,.fig{ margin:0 0 9pt; }
+.img{ display:block; max-width:100%; border-radius:4pt; }
+.fig figcaption{ font-size:8.5pt; color:var(--color-muted); margin-top:3pt; }
+
+/* callout */
+.callout{
+  border-left:3pt solid var(--color-accent); background:rgba(0,0,0,.03);
+  padding:7pt 10pt; margin:0 0 9pt; border-radius:0 4pt 4pt 0;
+}
+.callout .co-t{ font-weight:700; color:var(--color-heading); margin:0 0 2pt; font-size:10pt; }
+.callout p{ margin:0; font-size:10pt; line-height:1.35; }
+
+/* régua / espaçador */
+.rule{ border:none; border-top:.75pt solid var(--color-rule); margin:9pt 0; }
+.spacer{ width:100%; }

@@ -1,0 +1,9 @@
+Coloque aqui os arquivos de fonte (.ttf / .otf) da marca do cliente
+e aponte-os em brand.json -> fonts.display.file / fonts.body.file.
+
+IMPORTANTE: @import do Google Fonts NÃO carrega em print-to-pdf headless.
+A fonte PRECISA estar embarcada como arquivo local aqui.
+
+Se a fonte da marca for proprietária e você não a tiver, escolha um
+substituto geométrico próximo (ex.: Montserrat, Inter) e anote a troca
+no campo "_fontes_originais" do brand.json — como foi feito no MIME.

@@ -1,0 +1,32 @@
+{
+  "title": "Demonstração de Blocos",
+  "auto_number_sections": false,
+  "blocks": [
+    { "type": "greeting", "title": "Visão geral", "text": "Este documento mostra **todos os blocos** suportados pelo gerador, renderizados na identidade da marca selecionada." },
+
+    { "type": "heading", "level": 1, "text": "Parágrafos e ênfase" },
+    { "type": "paragraph", "text": "Texto corrido com **negrito**, *itálico* e quebra natural de linha. O corpo respeita a tipografia e a cor de texto definidas no brand.json." },
+
+    { "type": "heading", "level": 2, "text": "Listas" },
+    { "type": "list", "style": "bullet", "items": ["Item simples com marcador", "Outro item", "Item com **destaque**"] },
+    { "type": "list", "style": "number", "items": ["Primeiro passo", "Segundo passo", "Terceiro passo"] },
+    { "type": "list", "style": "check", "items": [
+      { "term": "Tarefa", "desc": "checklist com termo em negrito e caixa [ ]" },
+      "ou item de checklist sem termo"
+    ] },
+
+    { "type": "heading", "level": 2, "text": "Tabela" },
+    { "type": "table",
+      "headers": ["Etapa", "Responsável", "Prazo"],
+      "rows": [
+        ["Briefing", "Atendimento", "D+1"],
+        ["Produção", "Criação", "D+3"],
+        ["Aprovação", "Cliente", "D+5"]
+      ] },
+
+    { "type": "callout", "title": "Atenção", "text": "Bloco de destaque para avisos, observações ou notas importantes." },
+
+    { "type": "divider" },
+    { "type": "paragraph", "text": "Conteúdo após a régua divisória. Header e rodapé se repetem automaticamente se passar de uma página." }
+  ]
+}

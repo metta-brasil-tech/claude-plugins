@@ -1,0 +1,37 @@
+{
+  "name": "NOME DO CLIENTE",
+
+  "page": { "size": "A4", "margin_x": "28pt" },
+
+  "fonts": {
+    "display": { "family": "ClienteDisplay", "file": "fonts/Display.ttf", "weight": "100 900" },
+    "body":    { "family": "ClienteBody",    "file": "fonts/Body.ttf",    "weight": "100 900" }
+  },
+
+  "colors": {
+    "primary": "#111111",
+    "accent":  "#0aa",
+    "text":    "#1a1a1a",
+    "heading": "#111111",
+    "muted":   "#6b7280",
+    "rule":    "#e5e7eb"
+  },
+
+  "header": {
+    "_type_opcoes": "gradient | solid | image | none",
+    "type": "solid",
+    "background": "var(--color-primary)",
+    "height": "74pt",
+    "logo": "assets/logo.png",
+    "logo_height": "34pt",
+    "title_color": "#ffffff",
+    "title_size": "27pt"
+  },
+
+  "footer": {
+    "_type_opcoes": "image | text | none",
+    "type": "text",
+    "text": "© Cliente — documento confidencial",
+    "image": "assets/footer.png"
+  }
+}
